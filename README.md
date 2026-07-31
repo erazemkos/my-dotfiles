@@ -19,10 +19,10 @@ install/   bootstrap scripts
 ## Install
 
 ```bash
-git clone git@github.com:erazemkos/my-dotfiles.git ~/dotfiles
+git clone git@github.com:erazemkos/my-dotfiles.git ~/.config/dotfiles
 
-~/dotfiles/install/macos.sh    # macOS (Homebrew)
-~/dotfiles/install/debian.sh   # Debian/Ubuntu (apt + upstream releases)
+~/.config/dotfiles/install/macos.sh    # macOS (Homebrew)
+~/.config/dotfiles/install/debian.sh   # Debian/Ubuntu (apt + upstream releases)
 ```
 
 Both scripts install dependencies and then run `install/link.sh`, which

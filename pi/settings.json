@@ -9,7 +9,8 @@
     "npm:pi-cursor-sdk",
     "npm:pi-subagents",
     "npm:@neilurk12/pi-lazygit",
-    "npm:pi-caveman"
+    "npm:pi-caveman",
+    "git:github.com/erazemkos/pi-copy-on-select"
   ],
   "lastChangelogVersion": "0.83.0",
   "defaultProvider": "bedrock-mantle",
@@ -19,7 +20,13 @@
   "powerline": {
     "preset": "default",
     "scrollAwayCard": false,
-    "copyOnSelect": true
+    "copyOnSelect": false
+  },
+  "copyOnSelect": {
+    "enabled": true,
+    "clearSelection": "fade",
+    "fadeMs": 250,
+    "toast": true
   },
   "showHardwareCursor": true,
   "quietStartup": true,

@@ -24,8 +24,7 @@
   },
   "copyOnSelect": {
     "enabled": true,
-    "clearSelection": "fade",
-    "fadeMs": 250,
+    "clearSelection": "immediate",
     "toast": true
   },
   "showHardwareCursor": true,

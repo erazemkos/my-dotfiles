@@ -26,6 +26,7 @@ prompt_new_tab_name = false
 
 # Preserve Kitty muscle memory while Herdr owns tabs and panes.
 # Prefix bindings remain available as fallbacks.
+agent_panel_sort = "spaces"
 [keys]
 prefix = "cmd+a"
 new_tab = ["prefix+c", "cmd+t", "cmd+shift+t"]

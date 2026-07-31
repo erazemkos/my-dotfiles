@@ -1,0 +1,27 @@
+{
+  "packages": [
+    "npm:pi-terminal-theme",
+    "npm:pi-powerline-footer",
+    "npm:pi-usage",
+    "npm:@lydst/pi-webfetch",
+    "npm:@ifi/pi-plan",
+    "npm:pi-session-title",
+    "npm:pi-cursor-sdk",
+    "npm:pi-subagents",
+    "npm:@neilurk12/pi-lazygit",
+    "npm:pi-caveman"
+  ],
+  "lastChangelogVersion": "0.83.0",
+  "defaultProvider": "bedrock-mantle",
+  "defaultModel": "openai.gpt-5.6-sol",
+  "defaultThinkingLevel": "high",
+  "theme": "terminal-user-card",
+  "powerline": "default",
+  "showHardwareCursor": true,
+  "quietStartup": true,
+  "enabledModels": [
+    "amazon-bedrock/global.anthropic.claude-opus-5",
+    "bedrock-mantle/openai.gpt-5.6-sol",
+    "bedrock-mantle/openai.gpt-5.6-terra"
+  ]
+}

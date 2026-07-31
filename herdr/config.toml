@@ -1,0 +1,58 @@
+# Match Kitty and Neovim's shared VSCode Dark palette.
+[theme]
+name = "terminal"
+
+[theme.custom]
+accent = "#569cd6"
+panel_bg = "reset"
+surface0 = "#2d2d30"
+surface1 = "#404040"
+surface_dim = "#202020"
+overlay0 = "#808080"
+overlay1 = "#d4d4d4"
+text = "reset"
+subtext0 = "#808080"
+mauve = "#c678dd"
+green = "#608b4e"
+yellow = "#dcdcaa"
+red = "#f44747"
+blue = "#569cd6"
+teal = "#56b6c2"
+peach = "#d7ba7d"
+
+[ui]
+accent = "#569cd6"
+prompt_new_tab_name = false
+
+# Preserve Kitty muscle memory while Herdr owns tabs and panes.
+# Prefix bindings remain available as fallbacks.
+[keys]
+prefix = "cmd+a"
+new_tab = ["prefix+c", "cmd+t", "cmd+shift+t"]
+previous_tab = "prefix+p"
+next_tab = "prefix+n"
+previous_workspace = "cmd+["
+next_workspace = "cmd+]"
+switch_tab = ["prefix+1..9", "cmd+1..9"]
+goto = ["prefix+g", "cmd+e"]
+last_pane = "cmd+escape"
+
+split_vertical = ["prefix+v", "cmd+d", "cmd+shift+s"]
+split_horizontal = ["prefix+minus", "cmd+s", "cmd+shift+d"]
+close_pane = ["prefix+x", "cmd+x", "cmd+w"]
+
+focus_pane_left = ["prefix+h", "cmd+h", "cmd+left"]
+focus_pane_down = ["prefix+j", "cmd+j", "cmd+down"]
+focus_pane_up = ["prefix+k", "cmd+k", "cmd+up"]
+focus_pane_right = ["prefix+l", "cmd+l", "cmd+right"]
+
+swap_pane_left = ["prefix+shift+h", "cmd+shift+h", "cmd+shift+left"]
+swap_pane_down = ["prefix+shift+j", "cmd+shift+j", "cmd+shift+down"]
+swap_pane_up = ["prefix+shift+k", "cmd+shift+k", "cmd+shift+up"]
+swap_pane_right = ["prefix+shift+l", "cmd+shift+l", "cmd+shift+right"]
+
+[[keys.command]]
+key = "cmd+n"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" workspace create --cwd \"$HOME\" --focus"
+description = "create space in home directory"

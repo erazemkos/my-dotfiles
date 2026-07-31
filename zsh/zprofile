@@ -1,0 +1,18 @@
+# Homebrew (macOS Intel/ARM, or Linuxbrew) — first one found wins.
+for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+	if [ -x "$brew_bin" ]; then
+		eval "$("$brew_bin" shellenv)"
+		break
+	fi
+done
+unset brew_bin
+
+# JetBrains Toolbox (macOS)
+if [ -d "$HOME/Library/Application Support/JetBrains/Toolbox/scripts" ]; then
+	export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+fi
+
+# ServiceNow CLI (macOS)
+if [ -d "/Applications/ServiceNow CLI/bin" ]; then
+	export PATH="$PATH:/Applications/ServiceNow CLI/bin"
+fi

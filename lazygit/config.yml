@@ -1,0 +1,20 @@
+git:
+  pagers:
+    - pager: delta --dark --paging=never
+gui:
+  switchTabsWithPanelJumpKeys: true
+os:
+  editPreset: "nvim"
+customCommands:
+  - key: 'H'
+    context: 'localBranches'
+    description: 'Open Hunk diff against base branch'
+    output: terminal
+    prompts:
+      - type: 'input'
+        title: 'Base branch'
+        key: 'Base'
+        initialValue: 'main'
+        suggestions:
+          preset: 'branches'
+    command: 'hunk diff {{printf "%s...%s" .Form.Base .SelectedLocalBranch.Name | quote}}'

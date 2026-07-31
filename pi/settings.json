@@ -18,7 +18,8 @@
   "theme": "terminal-user-card",
   "powerline": {
     "preset": "default",
-    "scrollAwayCard": false
+    "scrollAwayCard": false,
+    "copyOnSelect": true
   },
   "showHardwareCursor": true,
   "quietStartup": true,

@@ -1,3 +1,4 @@
+onboarding = false
 # Match Kitty and Neovim's shared VSCode Dark palette.
 [theme]
 name = "terminal"

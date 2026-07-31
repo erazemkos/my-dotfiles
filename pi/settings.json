@@ -13,8 +13,8 @@
     "git:github.com/erazemkos/pi-copy-on-select"
   ],
   "lastChangelogVersion": "0.83.0",
-  "defaultProvider": "bedrock-mantle",
-  "defaultModel": "openai.gpt-5.6-terra",
+  "defaultProvider": "amazon-bedrock",
+  "defaultModel": "global.anthropic.claude-opus-5",
   "defaultThinkingLevel": "high",
   "theme": "terminal-user-card",
   "powerline": {
@@ -24,7 +24,8 @@
   },
   "copyOnSelect": {
     "enabled": true,
-    "clearSelection": "immediate",
+    "clearSelection": "fade",
+    "fadeMs": 100,
     "toast": true
   },
   "showHardwareCursor": true,

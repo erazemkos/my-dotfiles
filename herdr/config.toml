@@ -26,15 +26,16 @@ accent = "#569cd6"
 prompt_new_tab_name = false
 
 # Preserve Kitty muscle memory while Herdr owns tabs and panes.
-# Prefix bindings remain available as fallbacks.
+# Cmd bindings work on macOS; Ctrl+B prefix sequences work in Linux/WSL
+# terminals, where the Windows/Super key is normally intercepted by the host.
 agent_panel_sort = "spaces"
 [keys]
-prefix = "cmd+a"
+prefix = "ctrl+b"
 new_tab = ["prefix+c", "cmd+t", "cmd+shift+t"]
 previous_tab = "prefix+p"
 next_tab = "prefix+n"
-previous_workspace = "cmd+["
-next_workspace = "cmd+]"
+previous_workspace = ["prefix+[", "cmd+["]
+next_workspace = ["prefix+]", "cmd+]"]
 switch_tab = ["prefix+1..9", "cmd+1..9"]
 goto = ["prefix+g", "cmd+e"]
 last_pane = "cmd+escape"

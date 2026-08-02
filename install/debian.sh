@@ -18,8 +18,19 @@ fi
 
 DEB_ARCH="$(dpkg --print-architecture)"
 case "$DEB_ARCH" in
-amd64) UNAME_ARCH="x86_64" ;;
-arm64) UNAME_ARCH="aarch64" ;;
+amd64)
+	UNAME_ARCH="x86_64"
+	MUSL_TARGET="x86_64-unknown-linux-musl"
+	DELTA_TARGET="$MUSL_TARGET"
+	KITTY_ARCH="x86_64"
+	;;
+arm64)
+	UNAME_ARCH="aarch64"
+	MUSL_TARGET="aarch64-unknown-linux-musl"
+	# git-delta does not publish an aarch64 musl archive.
+	DELTA_TARGET="aarch64-unknown-linux-gnu"
+	KITTY_ARCH="arm64"
+	;;
 *) die "unsupported architecture: $DEB_ARCH" ;;
 esac
 
@@ -36,6 +47,7 @@ APT_PACKAGES=(
 	unzip
 	tar
 	fontconfig
+	file       # file type detection in yazi
 	zsh
 	ripgrep    # telescope live_grep
 	fd-find    # telescope find_files (binary is fdfind)
@@ -46,8 +58,6 @@ APT_PACKAGES=(
 	ffmpeg
 	imagemagick
 	p7zip-full
-	kitty
-	golang-go  # gopls/goimports/delve builds
 	python3
 	python3-venv
 )
@@ -58,23 +68,20 @@ $SUDO apt-get update -y
 log "installing apt packages"
 $SUDO apt-get install -y --no-install-recommends "${APT_PACKAGES[@]}"
 
-# zoxide and git-delta are only in recent Debian/Ubuntu releases.
-for optional in zoxide git-delta; do
-	if $SUDO apt-get install -y --no-install-recommends "$optional" 2>/dev/null; then
-		log "installed $optional from apt"
-	else
-		warn "$optional not available from apt; install manually (cargo install $optional)"
-	fi
-done
-
 # apt ships fd as `fdfind`; nvim/telescope and muscle memory expect `fd`.
-if have fdfind && ! have fd; then
+# Check the persistent target rather than PATH, which pi may temporarily add
+# its own private fd binary to while this installer is running.
+if have fdfind && [ ! -x "$BIN_DIR/fd" ]; then
 	log "linking fdfind -> $BIN_DIR/fd"
 	$SUDO ln -sf "$(command -v fdfind)" "$BIN_DIR/fd"
 fi
 
 github_latest_tag() {
 	curl -fsSL "https://api.github.com/repos/$1/releases/latest" | jq -r .tag_name
+}
+
+version_lt() {
+	[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -1)" != "$2" ]
 }
 
 # --- Neovim -----------------------------------------------------------------
@@ -84,7 +91,7 @@ nvim_too_old() {
 	have nvim || return 0
 	local version
 	version="$(nvim --version | head -1 | sed 's/^NVIM v//')"
-	[ "$(printf '%s\n0.11.0\n' "$version" | sort -V | head -1)" != "0.11.0" ]
+	version_lt "$version" 0.11.0
 }
 
 if nvim_too_old; then
@@ -103,16 +110,73 @@ else
 	log "ok neovim $(nvim --version | head -1)"
 fi
 
+# --- Kitty ------------------------------------------------------------------
+# Debian 11's Kitty is too old for options used by kitty.conf, so use the
+# self-contained upstream build on old distributions.
+kitty_too_old() {
+	have kitty || return 0
+	local output version
+	output="$(kitty --version 2>/dev/null)" || return 0
+	version="$(printf '%s' "$output" | awk '{ print $2 }')"
+	[ -n "$version" ] || return 0
+	version_lt "$version" 0.30.0
+}
+
+if kitty_too_old; then
+	log "installing Kitty from upstream release"
+	# Newer builds require glibc 2.35, but Debian 11 provides 2.31. This is the
+	# newest release tested on Bullseye and supports every option in kitty.conf.
+	kt_version="0.42.2"
+	kt_tag="v$kt_version"
+	curl -fsSL -o "$TMP/kitty.txz" \
+		"https://github.com/kovidgoyal/kitty/releases/download/${kt_tag}/kitty-${kt_version}-${KITTY_ARCH}.txz"
+	$SUDO rm -rf /opt/kitty
+	$SUDO mkdir -p /opt/kitty
+	$SUDO tar -xJf "$TMP/kitty.txz" -C /opt/kitty
+	$SUDO ln -sf /opt/kitty/bin/kitty "$BIN_DIR/kitty"
+	$SUDO ln -sf /opt/kitty/bin/kitten "$BIN_DIR/kitten"
+else
+	log "ok $(kitty --version)"
+fi
+
 # --- Node.js ----------------------------------------------------------------
 # mason (ts_ls, pyright, cssls, html) and pi both need a modern Node.
 node_major() { node --version 2>/dev/null | sed 's/^v//; s/\..*//'; }
 
 if ! have node || [ "$(node_major)" -lt 20 ]; then
 	log "installing Node.js 22 from NodeSource"
-	curl -fsSL https://deb.nodesource.com/setup_22.x | $SUDO -E bash -
+	if [ -n "$SUDO" ]; then
+		curl -fsSL https://deb.nodesource.com/setup_22.x | $SUDO -E bash -
+	else
+		curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+	fi
 	$SUDO apt-get install -y nodejs
 else
 	log "ok node $(node --version)"
+fi
+
+# --- Go ---------------------------------------------------------------------
+# Bullseye ships Go 1.15, which cannot build current gopls/goimports/delve.
+go_too_old() {
+	have go || return 0
+	local version
+	version="$(go version | sed -E 's/.* go([0-9]+(\.[0-9]+){1,2}).*/\1/')"
+	version_lt "$version" 1.24.0
+}
+
+if go_too_old; then
+	log "installing Go from the latest stable upstream release"
+	go_releases="$(curl -fsSL 'https://go.dev/dl/?mode=json')"
+	go_file="$(printf '%s' "$go_releases" | jq -r --arg arch "$DEB_ARCH" \
+		'first(.[] | select(.stable) | .files[] | select(.os == "linux" and .arch == $arch and .kind == "archive") | .filename)')"
+	[ -n "$go_file" ] && [ "$go_file" != null ] || die "could not find a Go release for $DEB_ARCH"
+	curl -fsSL -o "$TMP/$go_file" "https://go.dev/dl/$go_file"
+	$SUDO rm -rf /usr/local/go
+	$SUDO tar -xzf "$TMP/$go_file" -C /usr/local
+	$SUDO ln -sf /usr/local/go/bin/go "$BIN_DIR/go"
+	$SUDO ln -sf /usr/local/go/bin/gofmt "$BIN_DIR/gofmt"
+else
+	log "ok $(go version)"
 fi
 
 # --- lazygit ----------------------------------------------------------------
@@ -132,15 +196,45 @@ else
 	$SUDO install -m 0755 "$TMP/lazygit" "$BIN_DIR/lazygit"
 fi
 
+# --- zoxide -----------------------------------------------------------------
+if have zoxide; then
+	log "ok zoxide $(zoxide --version)"
+else
+	log "installing zoxide from upstream release"
+	zx_tag="$(github_latest_tag ajeetdsouza/zoxide)"
+	zx_version="${zx_tag#v}"
+	curl -fsSL -o "$TMP/zoxide.tar.gz" \
+		"https://github.com/ajeetdsouza/zoxide/releases/download/${zx_tag}/zoxide-${zx_version}-${MUSL_TARGET}.tar.gz"
+	tar -xzf "$TMP/zoxide.tar.gz" -C "$TMP"
+	$SUDO install -m 0755 "$TMP/zoxide" "$BIN_DIR/zoxide"
+fi
+
+# --- git-delta --------------------------------------------------------------
+if have delta; then
+	log "ok delta $(delta --version)"
+else
+	log "installing git-delta from upstream release"
+	delta_tag="$(github_latest_tag dandavison/delta)"
+	delta_version="${delta_tag#v}"
+	delta_dir="delta-${delta_version}-${DELTA_TARGET}"
+	curl -fsSL -o "$TMP/delta.tar.gz" \
+		"https://github.com/dandavison/delta/releases/download/${delta_tag}/${delta_dir}.tar.gz"
+	tar -xzf "$TMP/delta.tar.gz" -C "$TMP"
+	$SUDO install -m 0755 "$TMP/$delta_dir/delta" "$BIN_DIR/delta"
+fi
+
 # --- yazi -------------------------------------------------------------------
-if have yazi; then
+if have yazi && have ya; then
 	log "ok yazi $(yazi --version)"
 else
 	log "installing yazi from upstream release"
 	yz_tag="$(github_latest_tag sxyazi/yazi)"
-	curl -fsSL -o "$TMP/yazi.deb" \
-		"https://github.com/sxyazi/yazi/releases/download/${yz_tag}/yazi-${UNAME_ARCH}-unknown-linux-gnu.deb"
-	$SUDO apt-get install -y "$TMP/yazi.deb"
+	yz_dir="yazi-${MUSL_TARGET}"
+	curl -fsSL -o "$TMP/yazi.zip" \
+		"https://github.com/sxyazi/yazi/releases/download/${yz_tag}/${yz_dir}.zip"
+	unzip -q "$TMP/yazi.zip" -d "$TMP"
+	$SUDO install -m 0755 "$TMP/$yz_dir/yazi" "$BIN_DIR/yazi"
+	$SUDO install -m 0755 "$TMP/$yz_dir/ya" "$BIN_DIR/ya"
 fi
 
 # --- herdr -----------------------------------------------------------------
@@ -169,12 +263,44 @@ else
 fi
 
 # --- global npm packages ----------------------------------------------------
-log "installing global npm packages"
-$SUDO npm install -g @earendil-works/pi-coding-agent hunkdiff
+# A user-owned prefix works with both NodeSource and nvm, and avoids running
+# third-party npm lifecycle scripts as root. ~/.local/bin is in zsh/zshrc.
+log "installing global npm packages under $HOME/.local"
+npm install -g --prefix "$HOME/.local" \
+	@earendil-works/pi-coding-agent hunkdiff
+
+# --- tree-sitter CLI --------------------------------------------------------
+# Current upstream Linux binaries require a newer glibc than Debian 11. Build
+# the CLI locally with Rust so it runs on the installed distribution. Version
+# 0.25.10 satisfies nvim-treesitter without the extra libclang build dependency
+# introduced by tree-sitter-cli 0.26.
+TREE_SITTER_CLI_VERSION="0.25.10"
+tree_sitter_ok() {
+	have tree-sitter || return 1
+	local version
+	version="$(tree-sitter --version 2>/dev/null | awk '{ print $2 }')"
+	[ -n "$version" ] && ! version_lt "$version" 0.25.0
+}
+
+if tree_sitter_ok; then
+	log "ok tree-sitter $(tree-sitter --version)"
+else
+	if [ ! -x "$HOME/.cargo/bin/rustup" ]; then
+		log "installing a minimal Rust toolchain for tree-sitter-cli"
+		curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs -o "$TMP/rustup.sh"
+		sh "$TMP/rustup.sh" -y --profile minimal --no-modify-path
+	fi
+	log "updating the Rust toolchain used to build tree-sitter-cli"
+	"$HOME/.cargo/bin/rustup" toolchain install stable --profile minimal --no-self-update
+	"$HOME/.cargo/bin/rustup" default stable
+	log "building tree-sitter-cli $TREE_SITTER_CLI_VERSION (this can take a few minutes)"
+	"$HOME/.cargo/bin/cargo" install --version "$TREE_SITTER_CLI_VERSION" \
+		--locked --force --root "$HOME/.local" tree-sitter-cli
+fi
 
 # --- Nerd Font --------------------------------------------------------------
 FONT_DIR="$HOME/.local/share/fonts"
-if ls "$FONT_DIR"/JetBrainsMono*NerdFont* >/dev/null 2>&1; then
+if [ -d "$FONT_DIR" ] && find "$FONT_DIR" -type f -iname 'JetBrainsMono*NerdFont*' -print -quit | grep -q .; then
 	log "ok JetBrainsMono Nerd Font"
 else
 	log "installing JetBrainsMono Nerd Font (kitty.conf font_family)"
@@ -188,7 +314,7 @@ fi
 # --- oh-my-zsh + plugins ----------------------------------------------------
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
 	log "installing oh-my-zsh"
-	RUNZSH=no KEEP_ZSHRC=yes sh -c \
+	RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \
 		"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 fi
 

@@ -1431,9 +1431,15 @@ require("lazy").setup({
         },
       }
 
-      vim.api.nvim_buf_create_user_command(0, "DapGoDebug", function()
+      -- Global command: dap-go config runs once, so a buffer-local command
+      -- would disappear after switching from task.go to task_test.go.
+      vim.api.nvim_create_user_command("DapGoDebug", function()
         require("dap-go").debug_test()
-      end, {})
+      end, { desc = "Debug nearest Go test" })
+
+      vim.api.nvim_create_user_command("DapGoDebugLast", function()
+        require("dap-go").debug_last_test()
+      end, { desc = "Debug last Go test" })
     end,
   },
 

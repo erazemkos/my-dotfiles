@@ -19,14 +19,16 @@ install/   bootstrap scripts
 ## Install
 
 ```bash
-git clone git@github.com:erazemkos/my-dotfiles.git ~/.config/dotfiles
+git clone https://github.com/erazemkos/my-dotfiles.git ~/.config/dotfiles
 
 ~/.config/dotfiles/install/macos.sh    # macOS (Homebrew)
 ~/.config/dotfiles/install/debian.sh   # Debian/Ubuntu (apt + upstream releases)
 ```
 
 Both scripts install dependencies and then run `install/link.sh`, which
-symlinks each config into place. Re-running is safe: an existing file or
+symlinks each config into place. The Debian script asks for your `sudo`
+password for system packages and `/usr/local` tools; npm packages and fonts are
+installed under your home directory. Re-running is safe: an existing file or
 directory is moved to `<path>.bak-<timestamp>` before the symlink is created,
 and links that already point at the repo are left alone.
 
@@ -55,11 +57,12 @@ there — never the whole directory.
 
 Installed by the bootstrap scripts:
 
-- **Editor/terminal:** neovim (0.11+), kitty, JetBrainsMono Nerd Font, herdr
-- **Neovim runtime needs:** git, make/build tools, ripgrep, fd, node, go,
+- **Editor/terminal:** neovim (0.11+), kitty (0.30+), JetBrainsMono Nerd Font,
+  herdr
+- **Neovim runtime needs:** git, make/build tools, ripgrep, fd, node, modern Go,
   python3, tree-sitter
-- **Git tooling:** git-delta (pager in `~/.gitconfig` and lazygit), lazygit,
-  `hunkdiff` (`hunk`, used by the lazygit custom command), gh
+- **Git tooling:** git-delta (the lazygit pager), lazygit, `hunkdiff` (`hunk`,
+  used by the lazygit custom command), gh
 - **Shell:** zsh, oh-my-zsh + `zsh-autosuggestions` and
   `zsh-syntax-highlighting`, autojump, zoxide, fzf, jq
 - **File manager:** yazi (`y` function in `.zshrc`, yazi.nvim) with ffmpeg,
@@ -72,9 +75,12 @@ first launch, so open `nvim` once after bootstrapping.
 
 ## Notes
 
+- On WSL, Kitty needs WSLg (Windows 11 or a current WSL installation). The font
+  is installed inside Linux, so it applies to Linux GUI applications rather
+  than Windows Terminal.
 - `pi` rewrites `~/.pi/agent/settings.json` when you change model or theme from
   inside the app; commit the resulting change here.
-- `pi/settings.json` names `bedrock-mantle` as the default provider. That
-  provider is registered by a machine-local pi extension that is deliberately
-  not tracked in this repo, so on a fresh machine pick a provider via `/model`.
+- `pi/settings.json` defaults to Amazon Bedrock and also lists machine-local
+  `bedrock-mantle` models. On a fresh machine, configure AWS credentials or
+  pick an available provider with `/model`.
 - Neovim's `lazy-lock.json` is intentionally not tracked (see `nvim/.gitignore`).

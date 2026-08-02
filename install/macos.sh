@@ -66,7 +66,7 @@ npm install -g "${NPM_GLOBALS[@]}"
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
 	log "installing oh-my-zsh"
-	RUNZSH=no KEEP_ZSHRC=yes sh -c \
+	RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \
 		"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 fi
 

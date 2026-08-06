@@ -96,12 +96,24 @@ first launch, so open `nvim` once after bootstrapping.
   Global + GPT-5.6 Sol/Terra enabled; everything else is listed in `/scope` but
   off. Saved scope lives in `~/.pi/agent/provider-profiles.json` (per-machine
   runtime state, not in this repo). Providers appear only when their auth is
-  configured. `pi/keybindings.json` unbinds the built-in `app.model.cycle*`
-  bindings so the extension can own those keys; the two files must stay
-  together. `Ctrl+L` still opens the full cross-provider picker, and built-in
+  configured. `Ctrl+L` still opens the full cross-provider picker, and built-in
   `/scoped-models` still edits pi's own cross-provider scope — it is handled
   inside pi before extension commands, so it cannot be overridden; use `/scope`
   for the per-group list.
+- `pi/keybindings.json` clears the built-in bindings that would otherwise claim
+  the extension's keys, so it must stay linked alongside
+  `pi/extensions/provider-profiles.ts`:
+  | id | change | why |
+  | -- | ------ | --- |
+  | `app.model.cycleForward` / `app.model.cycleBackward` | unbound | reserved ids; while bound, pi *skips* an extension shortcut on `Ctrl+P` / `Shift+Ctrl+P` entirely |
+  | `app.session.togglePath` | unbound | also held `Ctrl+P`; only toggled path display in `/resume` |
+  | `app.models.toggleProvider` | unbound | also held `Ctrl+P`; belonged to built-in `/scoped-models`, superseded by `/scope` |
+  | `app.session.rename` | moved to `F2` | held `Ctrl+R`; rename-from-`/resume` has no other entry point (`/name` only renames the current session) |
+  Without the two `unbound` entries on `Ctrl+P`, pi prints an
+  `[Extension issues]` shortcut-conflict warning on every start and `/reload` —
+  `quietStartup` does *not* suppress those. The unbound picker actions still
+  render their hint text in `/resume` and `/scoped-models`, just with an empty
+  key.
 - Provider cycling is bound to **`Ctrl+R`** as well as `Shift+Ctrl+P`, because
   kitty's default `kitty_mod+p` (= `ctrl+shift+p`) is a multi-key *prefix* for
   its `hints`/`choose-files` kittens: the first press is swallowed by kitty's

@@ -1,4 +1,7 @@
 {
   "app.model.cycleForward": [],
-  "app.model.cycleBackward": []
+  "app.model.cycleBackward": [],
+  "app.session.togglePath": [],
+  "app.models.toggleProvider": [],
+  "app.session.rename": "f2"
 }

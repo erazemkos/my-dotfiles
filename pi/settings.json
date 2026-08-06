@@ -9,7 +9,8 @@
     "npm:pi-cursor-sdk",
     "npm:pi-subagents",
     "npm:@neilurk12/pi-lazygit",
-    "npm:pi-caveman"
+    "npm:pi-caveman",
+    "../../.config/dotfiles/pi-grill-wizard"
   ],
   "lastChangelogVersion": "0.83.0",
   "defaultProvider": "amazon-bedrock",
@@ -22,10 +23,5 @@
     "copyOnSelect": false
   },
   "showHardwareCursor": true,
-  "quietStartup": true,
-  "enabledModels": [
-    "amazon-bedrock/global.anthropic.claude-opus-5",
-    "bedrock-mantle/openai.gpt-5.6-sol",
-    "bedrock-mantle/openai.gpt-5.6-terra"
-  ]
+  "quietStartup": true
 }

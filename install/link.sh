@@ -32,8 +32,13 @@ link zsh/zprofile "$HOME/.zprofile"
 # transcripts and model caches, which must stay out of the repo.
 PI_AGENT="$HOME/.pi/agent"
 link pi/settings.json "$PI_AGENT/settings.json"
+link pi/keybindings.json "$PI_AGENT/keybindings.json"
 link pi/themes/terminal-user-card.json "$PI_AGENT/themes/terminal-user-card.json"
 link pi/extensions/clean-code-blocks.ts "$PI_AGENT/extensions/clean-code-blocks.ts"
+link pi/extensions/arcus.ts "$PI_AGENT/extensions/arcus.ts"
+link pi/extensions/bedrock-sso.ts "$PI_AGENT/extensions/bedrock-sso.ts"
+link pi/extensions/bedrock-mantle.ts "$PI_AGENT/extensions/bedrock-mantle.ts"
+link pi/extensions/provider-profiles.ts "$PI_AGENT/extensions/provider-profiles.ts"
 link pi/agents/review.md "$PI_AGENT/agents/review.md"
 for prompt in review pr-comment video; do
 	link "pi/prompts/$prompt.md" "$PI_AGENT/prompts/$prompt.md"

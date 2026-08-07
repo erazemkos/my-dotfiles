@@ -1,0 +1,87 @@
+# godbg configuration.
+#
+# Linked to ~/.config/godbg/config.yml by install/link.sh. A project can override
+# any of these keys with a .godbg.yml file in its root; merging is key-wise, so a
+# project file only changes what it sets.
+#
+# `godbg keys` prints the effective keymap, `godbg doctor` checks dependencies.
+
+keys:
+  # Every action can be rebound. Chords are normalized, `cmd+` is read as
+  # `ctrl+` because terminals cannot receive Cmd. Actions:
+  #   continue stepOver stepInto stepOut runToCursor toggleBreakpoint stop
+  #   restart debug run viewBreakpoints help quit focusEditor nextPanel
+  #   prevPanel nextTab prevTab toggleCodePanel toggleStackPanel
+  #   toggleVariablesPanel toggleBottomPanel refresh
+  #
+  # `menu` (Shift+F10, fallback m) opens the context menu of the selected row,
+  # for terminals whose multiplexer claims right-click.
+  #
+  # Defaults follow GoLand: F9 resume, F8 step over, F7 step into,
+  # Shift+F8 step out, Alt+F9 run to cursor, Ctrl+F8 toggle breakpoint,
+  # Ctrl+F2 stop, Ctrl+F5 restart. Chords that need the kitty keyboard protocol
+  # fall back automatically (f6, b, x, r) in terminals that cannot deliver them.
+  # stepOut: [shift+f8, f6]
+
+layout:
+  # The arrangement is fixed (source left, call stack and variables right,
+  # tabs at the bottom); these control visibility and the draggable splits.
+  showCode: true
+  showStack: true
+  showVariables: true
+  showBottom: true
+  codeWidth: 0.62
+  topHeight: 0.68
+  stackHeight: 0.45
+
+editor:
+  # Source navigation happens in a real Neovim driven over RPC.
+  enabled: true
+  command: nvim
+  # integrated (default): godbg starts `nvim --embed`, attaches as a Neovim UI
+  #   and paints Neovim inside its own source panel — your colorscheme,
+  #   treesitter and LSP highlighting, sign column and cursor.
+  # pane: Neovim runs in a sibling terminal pane (herdr or kitty), as before.
+  mode: integrated
+  # Color depth of the integrated editor: auto uses truecolor when the terminal
+  # supports it (kitty does), false makes Neovim report 16/256-color attributes
+  # so the code area matches the terminal palette like the rest of the UI.
+  truecolor: auto
+  # auto tries herdr, then kitty remote control. Use none to attach to an
+  # existing `nvim --listen <socket>` via $GODBG_NVIM_SOCKET.
+  pane: auto
+  # Pane mode only. Where the editor pane goes: right, left, above or below. With above/below the
+  # editor spans the full width over/under godbg; pair it with
+  # layout.showCode: false so the source is shown once, in Neovim.
+  # kitty only distinguishes vertical and horizontal splits, so there left
+  # behaves like right and above like below.
+  panePosition: right
+  paneRatio: 0.5
+  # Remove nvim-dap's F-key maps inside the Neovim instance godbg spawns, so a
+  # debugger key means the same thing in both panes. Config files are untouched.
+  unmapDebugKeys: true
+  signs: true
+
+debug:
+  dlvPath: dlv
+  goPath: go
+  # unix keeps the adapter on a private 0700 socket and opens no port. Set tcp
+  # only where a unix socket cannot be created (for example when the socket path
+  # would exceed the platform limit); that opens a loopback port restricted to
+  # your user, which is less private.
+  transport: unix
+  buildFlags: ""
+  stopOnEntry: false
+  timeoutSeconds: 30
+  # Preferred .vscode/launch.json configuration name.
+  launchConfig: ""
+
+test:
+  # Test discovery uses gopls; subtests appear once `go test -json` reports them.
+  useGopls: true
+  goplsPath: gopls
+  flags: []
+
+log:
+  # debug|info|warn|error|off — the log lives in ~/.local/state/godbg/log/.
+  level: info

@@ -161,7 +161,7 @@ go_too_old() {
 	have go || return 0
 	local version
 	version="$(go version | sed -E 's/.* go([0-9]+(\.[0-9]+){1,2}).*/\1/')"
-	version_lt "$version" 1.24.0
+	version_lt "$version" 1.25.0
 }
 
 if go_too_old; then
@@ -331,10 +331,18 @@ clone_plugin() {
 clone_plugin zsh-users/zsh-autosuggestions zsh-autosuggestions
 clone_plugin zsh-users/zsh-syntax-highlighting zsh-syntax-highlighting
 
+install_godbg
+
 "$DOTFILES_ROOT/install/link.sh"
+install_pi_packages
 
 if [ "${SHELL:-}" != "$(command -v zsh)" ]; then
 	log "to make zsh the login shell: chsh -s $(command -v zsh)"
 fi
 
 log "next: open nvim once so lazy.nvim and mason install plugins/LSPs"
+if [ -x "$HOME/bin/godbg" ]; then
+	log "godbg is at ~/bin/godbg (run 'godbg doctor' to verify its dependencies)"
+else
+	warn "godbg is not installed; review the install warning above and re-run this script"
+fi

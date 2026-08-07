@@ -24,6 +24,10 @@ peach = "#d7ba7d"
 [ui]
 accent = "#569cd6"
 prompt_new_tab_name = false
+# Herdr owns plain right-click for its pane menu. Alt+right-click is forwarded to
+# the focused pane app instead, which is what godbg's context menus need. godbg
+# also puts a clickable "…" menu at the end of each row, so this is optional.
+right_click_passthrough_modifier = "alt"
 
 # Preserve Kitty muscle memory while Herdr owns tabs and panes.
 # Cmd bindings work on macOS; Ctrl+B prefix sequences work in Linux/WSL
@@ -36,6 +40,9 @@ previous_tab = "prefix+p"
 next_tab = "prefix+n"
 previous_workspace = ["prefix+[", "cmd+["]
 next_workspace = ["prefix+]", "cmd+]"]
+# Cycle detected agent panes in current workspace.
+previous_agent = "cmd+shift+["
+next_agent = "cmd+shift+]"
 switch_workspace = ["prefix+shift+1..9", "cmd+shift+1..9"]
 switch_tab = ["prefix+1..9", "cmd+1..9"]
 goto = ["prefix+g", "cmd+e"]

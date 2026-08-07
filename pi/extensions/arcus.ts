@@ -13,8 +13,8 @@ import type {
 const PROVIDER_ID = "arcus";
 const GATEWAY_URL = "https://ai-gateway.dev.devrev-eng.ai";
 const OPENAI_BASE_URL = `${GATEWAY_URL}/v1`;
-const KEYCHAIN_SERVICE = "arcus-token";
-const KEYCHAIN_API_KEY = `!security find-generic-password -s '${KEYCHAIN_SERVICE}' -a "$(id -un)" -w`;
+const API_KEY_ENV = "ARCUS_API_KEY";
+const API_KEY_CONFIG = `$${API_KEY_ENV}`;
 
 // Available before authentication and used when gateway discovery is offline.
 const FALLBACK_MODEL_IDS = [
@@ -140,23 +140,8 @@ function toArcusModel(id: string): ProviderModelConfig {
   };
 }
 
-async function keychainToken(
-  pi: ExtensionAPI,
-  signal?: AbortSignal,
-): Promise<string | undefined> {
-  const account = process.env.USER || process.env.LOGNAME;
-  if (!account) return undefined;
-
-  const result = await pi
-    .exec(
-      "security",
-      ["find-generic-password", "-s", KEYCHAIN_SERVICE, "-a", account, "-w"],
-      { signal, timeout: 5_000 },
-    )
-    .catch(() => undefined);
-
-  if (!result || result.code !== 0) return undefined;
-  return result.stdout?.trim() || undefined;
+function envToken(): string | undefined {
+  return process.env[API_KEY_ENV]?.trim() || undefined;
 }
 
 async function discoverModels(
@@ -192,7 +177,7 @@ export default function arcusProvider(pi: ExtensionAPI) {
   pi.registerProvider(PROVIDER_ID, {
     name: "Arcus AI Gateway",
     baseUrl: GATEWAY_URL,
-    apiKey: KEYCHAIN_API_KEY,
+    apiKey: API_KEY_CONFIG,
     api: "openai-completions",
     models: knownModels,
     async refreshModels(context) {
@@ -202,7 +187,7 @@ export default function arcusProvider(pi: ExtensionAPI) {
         context.credential?.type === "api_key"
           ? context.credential.key?.trim()
           : undefined;
-      const token = storedToken || (await keychainToken(pi, context.signal));
+      const token = storedToken || envToken();
       if (!token) {
         catalogSource = "retained catalog (token missing)";
         catalogCount = knownModels.length;
@@ -228,7 +213,7 @@ export default function arcusProvider(pi: ExtensionAPI) {
         .getProviderAuth(PROVIDER_ID)
         .catch(() => undefined);
       ctx.ui.notify(
-        `Arcus auth: ${auth?.source ?? "missing (use /login or Vulcan installer)"}; models: ${catalogCount} from ${catalogSource}`,
+        `Arcus auth: ${auth?.source ?? `missing (set ${API_KEY_ENV} or use /login)`}; models: ${catalogCount} from ${catalogSource}`,
         auth ? "info" : "warning",
       );
     },

@@ -83,10 +83,18 @@ clone_plugin() {
 clone_plugin zsh-users/zsh-autosuggestions zsh-autosuggestions
 clone_plugin zsh-users/zsh-syntax-highlighting zsh-syntax-highlighting
 
+install_godbg
+
 "$DOTFILES_ROOT/install/link.sh"
+install_pi_packages
 
 if [ "${SHELL:-}" != "$(command -v zsh)" ]; then
 	log "to make zsh the login shell: chsh -s $(command -v zsh)"
 fi
 
 log "next: open nvim once so lazy.nvim and mason install plugins/LSPs"
+if [ -x "$HOME/bin/godbg" ]; then
+	log "godbg is at ~/bin/godbg (run 'godbg doctor' to verify its dependencies)"
+else
+	warn "godbg is not installed; review the install warning above and re-run this script"
+fi

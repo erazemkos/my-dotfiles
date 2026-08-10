@@ -75,11 +75,7 @@ const PROVIDER_GROUPS: Record<string, string[]> = {
  * selection. A group with no entry starts with all models on.
  */
 const DEFAULT_SCOPE: Record<string, string[]> = {
-  arcus: [
-    "anthropic.claude-opus-5",
-    "openai.gpt-5.6-sol",
-    "openai.gpt-5.6-terra",
-  ],
+  arcus: ["anthropic.claude-opus-5", "gpt-5.6-sol", "gpt-5.6-terra"],
   bedrock: [
     "global.anthropic.claude-opus-5",
     "openai.gpt-5.6-sol", // bedrock-mantle version wins via dedup (works via proxy)
@@ -96,8 +92,8 @@ const DEFAULT_SCOPE: Record<string, string[]> = {
 const DEFAULT_ORDER: Record<string, string[]> = {
   arcus: [
     "anthropic.claude-opus-5",
-    "openai.gpt-5.6-sol",
-    "openai.gpt-5.6-terra",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
     "anthropic.claude-sonnet-4-6",
     "anthropic.claude-opus-4-8",
   ],

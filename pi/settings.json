@@ -12,9 +12,9 @@
     "npm:pi-caveman",
     "git:github.com/erazemkos/pi-grill-wizard@a2412dd610e97a875b94e8e743becf5695c6dce8"
   ],
-  "lastChangelogVersion": "0.83.0",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-sol",
+  "lastChangelogVersion": "0.84.1",
+  "defaultProvider": "amazon-bedrock",
+  "defaultModel": "global.anthropic.claude-opus-5",
   "defaultThinkingLevel": "high",
   "theme": "terminal-user-card",
   "powerline": {

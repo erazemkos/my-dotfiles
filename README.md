@@ -137,12 +137,11 @@ first launch, so open `nvim` once after bootstrapping.
   `Shift+Ctrl+P` instead, unmap the prefix leaves in `kitty/kitty.conf`
   (`map kitty_mod+p>f`, `>shift+f`, `>c`, `>d`, `>l`, `>w`, `>h`, `>n`, `>y`
   with no action), at the cost of kitty's hint-insertion features.
-- `pi/extensions/bedrock-sso.ts` keeps `amazon-bedrock` authenticated by
-  refreshing AWS SSO credentials into the process env at session start, and
-  `pi/extensions/bedrock-mantle.ts` registers the `bedrock-mantle` provider
+- `pi/extensions/bedrock-mantle.ts` registers the `bedrock-mantle` provider
   (GPT-5.x / Grok, served from Bedrock's OpenAI-compatible endpoint through a
-  local SigV4 proxy). Both need working AWS credentials/SSO; without them those
-  two providers stay unavailable while the gateway providers keep working.
+  local SigV4 proxy). It reads AWS credentials from the environment; refresh
+  them outside pi (`aws sso login` / `aws configure export-credentials`) — pi
+  no longer manages AWS SSO itself.
 - [godbg](https://github.com/erazemkos/godbg) is a mouse-first terminal debugger
   for Go: Delve over DAP, a GoLand keymap, and Neovim embedded in its source
   panel (`nvim --embed` attached as a Neovim UI, so the code shows your

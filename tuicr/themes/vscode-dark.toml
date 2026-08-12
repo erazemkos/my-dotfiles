@@ -1,0 +1,56 @@
+# VSCode Dark+ theme for tuicr.
+# UI colors are the exact hex values from Mofiqul/vscode.nvim (lua/vscode/colors.lua),
+# the colorscheme used in ../nvim. Syntax highlighting comes from
+# vscode-dark-syntax.tmTheme, generated from microsoft/vscode's dark_vs.json +
+# dark_plus.json token colors (comments italic, matching italic_comments = true).
+
+panel_bg = "#1f1f1f"        # vscBack
+bg_highlight = "#2d2d2d"    # vscTabOther
+fg_primary = "#d4d4d4"      # vscFront
+fg_secondary = "#bbbbbb"    # vscPopupFront
+fg_dim = "#5a5a5a"          # vscLineNumber
+
+diff_add = "#81b88b"        # vscGitAdded
+diff_add_bg = "#373d29"     # vscDiffGreenDark
+diff_del = "#c74e39"        # vscGitDeleted
+diff_del_bg = "#4b1818"     # vscDiffRedDark
+diff_context = "#d4d4d4"    # vscFront
+diff_hunk_header = "#569cd6" # vscBlue
+expanded_context_fg = "#5a5a5a"
+
+syntax_add_bg = "#373d29"
+syntax_del_bg = "#4b1818"
+syntax_theme = "vscode-dark-syntax.tmTheme"
+
+file_added = "#81b88b"      # vscGitAdded
+file_modified = "#e2c08d"   # vscGitModified
+file_deleted = "#c74e39"    # vscGitDeleted
+file_renamed = "#73c991"    # vscGitRenamed
+
+reviewed = "#81b88b"
+pending = "#e2c08d"
+
+comment_note = "#9cdcfe"       # vscLightBlue
+comment_suggestion = "#4ec9b0" # vscBlueGreen
+comment_issue = "#f44747"      # vscRed
+comment_praise = "#6a9955"     # vscGreen
+
+border_focused = "#007fd4"  # VSCode focusBorder
+border_unfocused = "#303031" # VSCode widget.border
+status_bar_bg = "#007acc"   # VSCode statusBar
+cursor_color = "#aeafad"    # vscCursorLight
+cursor_line_bg = "#222222"  # vscCursorDarkDark
+branch_name = "#c586c0"     # vscPink
+help_indicator = "#6a6a6a"  # vscSuggestion
+
+message_info_fg = "#1f1f1f"
+message_info_bg = "#9cdcfe"
+message_warning_fg = "#1f1f1f"
+message_warning_bg = "#cca700" # VSCode warning yellow
+message_error_fg = "#1f1f1f"
+message_error_bg = "#f44747"
+update_badge_fg = "#1f1f1f"
+update_badge_bg = "#e2c08d"
+
+mode_fg = "#1f1f1f"
+mode_bg = "#569cd6"

@@ -196,6 +196,19 @@ else
 	$SUDO install -m 0755 "$TMP/lazygit" "$BIN_DIR/lazygit"
 fi
 
+# --- tuicr ------------------------------------------------------------------
+if have tuicr; then
+	log "ok tuicr $(tuicr --version)"
+else
+	log "installing tuicr from upstream release"
+	tc_tag="$(github_latest_tag agavra/tuicr)"
+	tc_version="${tc_tag#v}"
+	curl -fsSL -o "$TMP/tuicr.tar.gz" \
+		"https://github.com/agavra/tuicr/releases/download/${tc_tag}/tuicr-${tc_version}-${UNAME_ARCH}-unknown-linux-gnu.tar.gz"
+	tar -xzf "$TMP/tuicr.tar.gz" -C "$TMP" tuicr
+	$SUDO install -m 0755 "$TMP/tuicr" "$BIN_DIR/tuicr"
+fi
+
 # --- zoxide -----------------------------------------------------------------
 if have zoxide; then
 	log "ok zoxide $(zoxide --version)"
@@ -267,7 +280,7 @@ fi
 # third-party npm lifecycle scripts as root. ~/.local/bin is in zsh/zshrc.
 log "installing global npm packages under $HOME/.local"
 npm install -g --prefix "$HOME/.local" \
-	@earendil-works/pi-coding-agent hunkdiff
+	@earendil-works/pi-coding-agent
 
 # --- tree-sitter CLI --------------------------------------------------------
 # Current upstream Linux binaries require a newer glibc than Debian 11. Build

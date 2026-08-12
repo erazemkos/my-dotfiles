@@ -8,7 +8,7 @@ os:
 customCommands:
   - key: 'H'
     context: 'localBranches'
-    description: 'Open Hunk diff against base branch'
+    description: 'Review diff against base branch in tuicr'
     output: terminal
     prompts:
       - type: 'input'
@@ -17,4 +17,4 @@ customCommands:
         initialValue: 'main'
         suggestions:
           preset: 'branches'
-    command: 'hunk diff {{printf "%s...%s" .Form.Base .SelectedLocalBranch.Name | quote}}'
+    command: 'tuicr -r {{printf "%s...%s" .Form.Base .SelectedLocalBranch.Name | quote}}'

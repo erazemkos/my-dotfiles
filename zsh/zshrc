@@ -123,6 +123,15 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+# Pick a GitHub PR of the current repo with fzf and review it in tuicr.
+function tpr() {
+	local pr
+	pr="$(gh pr list --limit 100 --json number,title,author \
+		--template '{{range .}}{{printf "#%v\t%s\t@%s\n" .number .title .author.login}}{{end}}' |
+		fzf --delimiter='\t' --with-nth=1,2,3 --prompt='PR> ' | cut -f1 | tr -d '#')" || return
+	[ -n "$pr" ] && tuicr pr "$pr"
+}
+
 export NOTES_CLI_EDITOR="nvim"
 export EDITOR="nvim"
 export VISUAL="$EDITOR"

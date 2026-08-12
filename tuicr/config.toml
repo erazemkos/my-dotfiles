@@ -1,0 +1,3 @@
+# VSCode Dark+ theme, matching the Mofiqul/vscode.nvim colorscheme.
+theme = "vscode-dark"
+diff_view = "side-by-side"

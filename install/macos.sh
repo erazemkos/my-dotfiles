@@ -25,6 +25,7 @@ FORMULAE=(
 	# git tooling: delta is the pager in ~/.gitconfig and lazygit
 	git-delta
 	lazygit
+	tuicr # code review TUI used by lazygit custom commands
 	gh
 	# shell
 	zsh
@@ -52,7 +53,6 @@ CASKS=(
 
 NPM_GLOBALS=(
 	"@earendil-works/pi-coding-agent" # pi
-	hunkdiff                          # `hunk` custom command in lazygit config
 )
 
 log "installing Homebrew formulae"

@@ -25,6 +25,9 @@ link herdr/config.toml "$CONFIG_HOME/herdr/config.toml"
 
 link lazygit/config.yml "$LAZYGIT_CONFIG"
 
+# tuicr owns its whole config directory (config.toml plus themes/).
+link tuicr "$CONFIG_HOME/tuicr"
+
 # godbg keeps per-project state, sockets and logs under the XDG state dir, so
 # only the config file is linked.
 link godbg/config.yml "$CONFIG_HOME/godbg/config.yml"

@@ -14,7 +14,7 @@
   ],
   "lastChangelogVersion": "0.84.1",
   "defaultProvider": "arcus",
-  "defaultModel": "gpt-5.6-terra",
+  "defaultModel": "kimi-k3",
   "defaultThinkingLevel": "high",
   "theme": "terminal-user-card",
   "powerline": {

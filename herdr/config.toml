@@ -1,4 +1,9 @@
 onboarding = false
+
+# Resume agent panes (pi, claude, ...) into their native sessions after
+# workspace restore, e.g. laptop reboot.
+[session]
+resume_agents_on_restore = true
 # Match Kitty and Neovim's shared VSCode Dark palette.
 [theme]
 name = "terminal"
@@ -47,6 +52,7 @@ switch_workspace = ["prefix+shift+1..9", "cmd+shift+1..9"]
 switch_tab = ["prefix+1..9", "cmd+1..9"]
 goto = ["prefix+g", "cmd+e"]
 last_pane = "cmd+escape"
+toggle_sidebar = ["prefix+b", "cmd+b"]
 
 split_vertical = ["prefix+v", "cmd+d", "cmd+shift+s"]
 split_horizontal = ["prefix+minus", "cmd+s", "cmd+shift+d"]

@@ -37,7 +37,7 @@ comment_praise = "#6a9955"     # vscGreen
 
 border_focused = "#007fd4"  # VSCode focusBorder
 border_unfocused = "#303031" # VSCode widget.border
-status_bar_bg = "#007acc"   # VSCode statusBar
+status_bar_bg = "#2d2d2d"   # neutral, was VSCode statusBar blue #007acc
 cursor_color = "#aeafad"    # vscCursorLight
 cursor_line_bg = "#222222"  # vscCursorDarkDark
 branch_name = "#c586c0"     # vscPink
@@ -52,5 +52,5 @@ message_error_bg = "#f44747"
 update_badge_fg = "#1f1f1f"
 update_badge_bg = "#e2c08d"
 
-mode_fg = "#1f1f1f"
-mode_bg = "#569cd6"
+mode_fg = "#d4d4d4"
+mode_bg = "#3e3e42"         # neutral gray, was vscBlue #569cd6

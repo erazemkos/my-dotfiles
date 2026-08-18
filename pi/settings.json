@@ -8,11 +8,10 @@
     "npm:pi-session-title",
     "npm:pi-cursor-sdk",
     "npm:pi-subagents",
-    "npm:@neilurk12/pi-lazygit",
     "npm:pi-caveman",
     "git:github.com/erazemkos/pi-grill-wizard@a2412dd610e97a875b94e8e743becf5695c6dce8"
   ],
-  "lastChangelogVersion": "0.84.1",
+  "lastChangelogVersion": "0.84.2",
   "defaultProvider": "arcus",
   "defaultModel": "kimi-k3",
   "defaultThinkingLevel": "high",

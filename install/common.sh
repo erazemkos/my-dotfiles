@@ -34,13 +34,18 @@ link() {
 		fi
 		rm "$dest"
 	elif [ -e "$dest" ]; then
-		local backup="$dest.bak-$STAMP" suffix=1
-		while [ -e "$backup" ] || [ -L "$backup" ]; do
-			backup="$dest.bak-$STAMP-$suffix"
-			((suffix += 1))
-		done
-		log "backup $dest -> $backup"
-		mv "$dest" "$backup"
+		if [ "${DOTFILES_CONFLICT_MODE:-backup}" = remove ]; then
+			log "remove conflicting $dest"
+			rm -rf -- "$dest"
+		else
+			local backup="$dest.bak-$STAMP" suffix=1
+			while [ -e "$backup" ] || [ -L "$backup" ]; do
+				backup="$dest.bak-$STAMP-$suffix"
+				((suffix += 1))
+			done
+			log "backup $dest -> $backup"
+			mv "$dest" "$backup"
+		fi
 	fi
 
 	ln -s "$src" "$dest"

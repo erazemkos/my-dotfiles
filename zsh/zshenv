@@ -1,0 +1,6 @@
+# Skip Nix-darwin's /etc/zshrc: it runs an unconditional compinit +
+# compaudit + promptinit, then Oh My Zsh runs compinit again. The duplicate
+# compinit doubled startup time and caused intermittent 1.5-3s shells
+# whenever .zcompdump went stale. OMZ sets its own history options, emacs
+# keymap, and theme, so nothing from /etc/zshrc is needed.
+NOSYSZSHRC=1

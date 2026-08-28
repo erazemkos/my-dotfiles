@@ -11,7 +11,7 @@
     "npm:pi-caveman",
     "git:github.com/erazemkos/pi-grill-wizard@a2412dd610e97a875b94e8e743becf5695c6dce8"
   ],
-  "lastChangelogVersion": "0.84.2",
+  "lastChangelogVersion": "0.84.3",
   "defaultProvider": "arcus",
   "defaultModel": "kimi-k3",
   "defaultThinkingLevel": "high",

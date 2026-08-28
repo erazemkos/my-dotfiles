@@ -1563,5 +1563,67 @@ require("lazy").setup({
   },
 })
 
+-- Jump through LSP-highlighted references with ]] and [[
+local function jump_lsp_reference(direction)
+  local params = vim.lsp.util.make_position_params(0, "utf-8")
+  vim.lsp.buf_request(0, "textDocument/documentHighlight", params, function(err, result, ctx)
+    if err or not result or vim.tbl_isempty(result) then
+      return
+    end
+    local cur = vim.api.nvim_win_get_cursor(0)
+    local line, col = cur[1] - 1, cur[2]
+    local ranges = {}
+    for _, hl in ipairs(result) do
+      table.insert(ranges, {
+        hl.range.start.line,
+        hl.range.start.character,
+        hl.range["end"].line,
+        hl.range["end"].character,
+      })
+    end
+    table.sort(ranges, function(a, b)
+      if a[1] == b[1] then
+        return a[2] < b[2]
+      end
+      return a[1] < b[1]
+    end)
+
+    -- true if cursor sits anywhere inside this range (so it is "current", skip it)
+    local function holds_cursor(r)
+      local after_start = line > r[1] or (line == r[1] and col >= r[2])
+      local before_end = line < r[3] or (line == r[3] and col < r[4])
+      return after_start and before_end
+    end
+
+    local target
+    if direction > 0 then
+      for _, r in ipairs(ranges) do
+        if not holds_cursor(r) and (r[1] > line or (r[1] == line and r[2] > col)) then
+          target = r
+          break
+        end
+      end
+      target = target or ranges[1] -- wrap to first
+    else
+      for i = #ranges, 1, -1 do
+        local r = ranges[i]
+        if not holds_cursor(r) and (r[1] < line or (r[1] == line and r[2] < col)) then
+          target = r
+          break
+        end
+      end
+      target = target or ranges[#ranges] -- wrap to last
+    end
+    vim.api.nvim_win_set_cursor(0, { target[1] + 1, target[2] })
+  end)
+end
+
+vim.keymap.set("n", "]]", function()
+  jump_lsp_reference(1)
+end, { desc = "Next LSP reference" })
+vim.keymap.set("n", "[[", function()
+  jump_lsp_reference(-1)
+end, { desc = "Previous LSP reference" })
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

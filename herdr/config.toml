@@ -4,6 +4,12 @@ onboarding = false
 # workspace restore, e.g. laptop reboot.
 [session]
 resume_agents_on_restore = true
+
+# Herdr creates its own PTYs, so Kitty's `shell` setting does not apply here.
+[terminal]
+default_shell = "/usr/bin/zsh"
+shell_mode = "login"
+
 # Match Kitty and Neovim's shared VSCode Dark palette.
 [theme]
 name = "terminal"

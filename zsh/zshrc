@@ -139,6 +139,8 @@ export VISUAL="$EDITOR"
 if [[ $- == *i* ]] && command -v zoxide >/dev/null 2>&1; then
 	eval "$(zoxide init --cmd cd zsh)"
 fi
-export ARCUS_API_KEY=$(security find-generic-password -w -s "arcus-token" -a "devrev")
+if command -v security >/dev/null 2>&1; then
+	export ARCUS_API_KEY="$(security find-generic-password -w -s "arcus-token" -a "devrev" 2>/dev/null)"
+fi
 
 [ -d "/Applications/ServiceNow CLI/bin" ] && export PATH="$PATH:/Applications/ServiceNow CLI/bin"

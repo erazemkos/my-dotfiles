@@ -20,18 +20,24 @@ install/   bootstrap scripts
 ## Install
 
 ```bash
-git clone https://github.com/erazemkos/my-dotfiles.git ~/.config/dotfiles
+git clone https://github.com/erazemkos/my-dotfiles.git ~/.config/my-dotfiles
 
-~/.config/dotfiles/install/macos.sh    # macOS (Homebrew)
-~/.config/dotfiles/install/debian.sh   # Debian/Ubuntu (apt + upstream releases)
+~/.config/my-dotfiles/install/omarchy.sh  # Omarchy/Arch (including Quattro)
+~/.config/my-dotfiles/install/macos.sh    # macOS (Homebrew)
+~/.config/my-dotfiles/install/debian.sh   # Debian/Ubuntu (apt + upstream releases)
 ```
 
-Both scripts install dependencies and then run `install/link.sh`, which
-symlinks each config into place. The Debian script asks for your `sudo`
-password for system packages and `/usr/local` tools; npm packages and fonts are
-installed under your home directory. Re-running is safe: an existing file or
-directory is moved to `<path>.bak-<timestamp>` before the symlink is created,
-and links that already point at the repo are left alone.
+Each script installs dependencies and then runs `install/link.sh`, which
+symlinks each config into place. The Omarchy installer extends the stock system
+through `omarchy pkg` and Omarchy's mise wrappers. It intentionally removes
+conflicting managed configs (including stock Neovim and Kitty) before linking
+the repo versions; unrelated Omarchy config is left untouched.
+
+The Debian script asks for your `sudo` password for system packages and
+`/usr/local` tools; npm packages and fonts are installed under your home
+directory. The Debian and macOS installers preserve an existing conflicting
+file or directory as `<path>.bak-<timestamp>`. All installers leave links that
+already point at the repo alone and are safe to re-run.
 
 `install/link.sh` can be run on its own if the dependencies are already there.
 

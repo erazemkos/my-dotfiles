@@ -92,7 +92,7 @@ Installed by the bootstrap scripts:
   optional and only improves test discovery.
 
 Neovim's LSP servers and formatters (gopls, ts_ls, pyright, lua_ls, html,
-cssls, templ, stylua, prettier, goimports, delve) are installed by mason on
+cssls, templ, stylua, ruff, prettier, goimports, delve) are installed by mason on
 first launch, so open `nvim` once after bootstrapping.
 
 ## Notes

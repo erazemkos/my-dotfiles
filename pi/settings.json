@@ -16,6 +16,7 @@
   "defaultModel": "kimi-k3",
   "defaultThinkingLevel": "high",
   "theme": "terminal-user-card",
+  "outputPad": 0,
   "powerline": {
     "preset": "default",
     "scrollAwayCard": false,

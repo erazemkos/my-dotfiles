@@ -930,6 +930,28 @@ require("lazy").setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+      local function project_python(root_dir)
+        local function executable(path)
+          return path and vim.fn.executable(path) == 1 and path or nil
+        end
+
+        local active_venv = vim.env.VIRTUAL_ENV
+        local active_python = active_venv and executable(vim.fs.joinpath(active_venv, "bin", "python"))
+        if active_python then
+          return active_python
+        end
+
+        root_dir = root_dir or vim.fn.getcwd()
+        local uv_environment = vim.env.UV_PROJECT_ENVIRONMENT
+        if uv_environment and not vim.startswith(uv_environment, "/") then
+          uv_environment = vim.fs.joinpath(root_dir, uv_environment)
+        end
+
+        return executable(uv_environment and vim.fs.joinpath(uv_environment, "bin", "python"))
+          or executable(vim.fs.joinpath(root_dir, ".venv", "bin", "python"))
+          or vim.fn.exepath "python3"
+      end
+
       local servers = {
         -- Your custom LSP servers (from NvChad config)
         gopls = {},
@@ -937,7 +959,14 @@ require("lazy").setup({
         cssls = {},
         templ = {},
         ts_ls = {}, -- JavaScript/TypeScript
-        basedpyright = {},
+        pyright = {
+          on_init = function(client)
+            client.settings = vim.tbl_deep_extend("force", client.settings or {}, {
+              python = { pythonPath = project_python(client.config.root_dir) },
+            })
+            client:notify("workspace/didChangeConfiguration", { settings = nil })
+          end,
+        },
 
         lua_ls = {
           settings = {
@@ -966,25 +995,22 @@ require("lazy").setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         "stylua", -- Used to format Lua code
+        "ruff", -- Used to format Python code
         "prettier", -- Used to format CSS/HTML
         "goimports", -- Used to format Go code
         "delve", -- Go debugger
       })
       require("mason-tool-installer").setup { ensure_installed = ensure_installed }
 
+      for server_name, server in pairs(servers) do
+        -- This handles overriding only values explicitly passed by each server config.
+        server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+        vim.lsp.config(server_name, server)
+      end
+
       require("mason-lspconfig").setup {
-        ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = false,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-            require("lspconfig")[server_name].setup(server)
-          end,
-        },
+        ensure_installed = {}, -- mason-tool-installer handles installation above
+        automatic_enable = vim.tbl_keys(servers),
       }
     end,
   },
@@ -1025,6 +1051,7 @@ require("lazy").setup({
       end,
       formatters_by_ft = {
         lua = { "stylua" },
+        python = { "ruff_format" },
         css = { "prettier" },
         html = { "prettier" },
         go = { "goimports", "gofmt" },

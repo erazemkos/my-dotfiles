@@ -8,9 +8,10 @@
     "npm:pi-cursor-sdk",
     "npm:pi-subagents",
     "npm:pi-caveman",
-    "git:github.com/erazemkos/pi-grill-wizard@a2412dd610e97a875b94e8e743becf5695c6dce8"
+    "git:github.com/erazemkos/pi-grill-wizard@a2412dd610e97a875b94e8e743becf5695c6dce8",
+    "npm:pi-web-access"
   ],
-  "lastChangelogVersion": "0.84.3",
+  "lastChangelogVersion": "0.84.4",
   "defaultProvider": "arcus",
   "defaultModel": "kimi-k3",
   "defaultThinkingLevel": "high",

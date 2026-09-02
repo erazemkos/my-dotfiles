@@ -93,6 +93,10 @@ vim.g.maplocalleader = " "
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+-- Disable builtin python ftplugin buffer-local maps ([[ ]] [] ][ [m ]m)
+-- so global LSP reference cycling maps take effect in python buffers.
+vim.g.no_python_maps = true
+
 -- Enable format on save by default
 vim.g.format_on_save_enabled = true
 
@@ -933,7 +937,7 @@ require("lazy").setup({
         cssls = {},
         templ = {},
         ts_ls = {}, -- JavaScript/TypeScript
-        pyright = {},
+        basedpyright = {},
 
         lua_ls = {
           settings = {

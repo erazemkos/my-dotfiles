@@ -7,7 +7,8 @@ resume_agents_on_restore = true
 
 # Herdr creates its own PTYs, so Kitty's `shell` setting does not apply here.
 [terminal]
-default_shell = "/usr/bin/zsh"
+# /bin/zsh exists on both macOS and Debian; /usr/bin/zsh does not exist on macOS.
+default_shell = "/bin/zsh"
 shell_mode = "login"
 
 # Match Kitty and Neovim's shared VSCode Dark palette.
@@ -19,6 +20,10 @@ accent = "#569cd6"
 panel_bg = "reset"
 surface0 = "#2d2d30"
 surface1 = "#404040"
+# 0.8.x gave sidebar rows dedicated colors that resolve brighter than before.
+# Pin both to surface0 so the selected/active row stays dark.
+selection_bg = "#2d2d30"
+active_row_bg = "#2d2d30"
 surface_dim = "#202020"
 overlay0 = "#808080"
 overlay1 = "#d4d4d4"
@@ -56,7 +61,7 @@ previous_agent = "cmd+shift+["
 next_agent = "cmd+shift+]"
 switch_workspace = ["prefix+shift+1..9", "cmd+shift+1..9"]
 switch_tab = ["prefix+1..9", "cmd+1..9"]
-goto = ["prefix+g", "cmd+e"]
+goto = "prefix+g"
 last_pane = "cmd+escape"
 toggle_sidebar = ["prefix+b", "cmd+b"]
 
@@ -79,3 +84,11 @@ key = "cmd+n"
 type = "shell"
 command = "\"$HERDR_BIN_PATH\" workspace create --cwd \"$HOME\" --focus"
 description = "create space in home directory"
+
+# herdr-navigator: type-to-search immediately, ctrl+o toggles pane preview.
+[[keys.command]]
+key = "cmd+e"
+type = "plugin_action"
+command = "herdr-navigator.open"
+description = "jump to anything"
+

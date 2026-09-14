@@ -8,8 +8,8 @@
     "npm:pi-cursor-sdk",
     "npm:pi-subagents",
     "npm:pi-caveman",
-    "git:github.com/erazemkos/pi-grill-wizard@a2412dd610e97a875b94e8e743becf5695c6dce8",
-    "npm:pi-web-access"
+    "npm:pi-web-access",
+    "npm:pi-grill-wizard"
   ],
   "lastChangelogVersion": "0.85.1",
   "defaultProvider": "arcus",

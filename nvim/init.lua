@@ -244,14 +244,14 @@ vim.keymap.set("n", "<leader>rr", vim.lsp.buf.rename, { desc = "LSP: [R]ename sy
 
 -- Debugging keymaps
 vim.keymap.set("n", "<leader>dt", function()
-  require("dapui").toggle()
+  require("dap-view").toggle(true)
 end, { desc = "Debug: Toggle UI" })
 vim.keymap.set("n", "<leader>db", "<cmd>DapToggleBreakpoint<CR>", { desc = "Debug: Toggle breakpoint" })
 vim.keymap.set("n", "<F8>", "<cmd>DapStepOver<CR>", { desc = "Debug: Step over" })
 vim.keymap.set("n", "<F9>", "<cmd>DapContinue<CR>", { desc = "Debug: Continue" })
 vim.keymap.set("n", "<F19>", "<cmd>DapStepInto<CR>", { desc = "Debug: Step into (Shift+F7)" })
 vim.keymap.set("n", "<leader>dr", function()
-  require("dapui").open { reset = true }
+  require("dap-view").open()
 end, { desc = "Debug: Reset UI" })
 
 -- Buffer management
@@ -998,7 +998,6 @@ require("lazy").setup({
         "ruff", -- Used to format Python code
         "prettier", -- Used to format CSS/HTML
         "goimports", -- Used to format Go code
-        "delve", -- Go debugger
       })
       require("mason-tool-installer").setup { ensure_installed = ensure_installed }
 
@@ -1373,8 +1372,6 @@ require("lazy").setup({
   {
     "mfussenegger/nvim-dap",
     config = function()
-      local dap = require "dap"
-
       vim.api.nvim_set_hl(0, "DapBreakpoint", { ctermbg = 0, fg = "#993939", bg = "#31353f" })
       vim.api.nvim_set_hl(0, "DapLogPoint", { ctermbg = 0, fg = "#61afef", bg = "#31353f" })
       vim.api.nvim_set_hl(0, "DapStopped", { ctermbg = 0, fg = "#98c379", bg = "#31353f" })
@@ -1400,87 +1397,43 @@ require("lazy").setup({
         { text = "", texthl = "DapStopped", linehl = "DapStopped", numhl = "DapStopped" }
       )
 
-      -- Load VS Code launch.json if present
+      -- nvim-dap reads .vscode/launch.json automatically before showing its
+      -- configuration picker. Keep JSONC and VS Code Go config compatibility.
       local vscode = require "dap.ext.vscode"
-      -- Support JSONC (JSON with comments/trailing commas) used by VS Code
       vscode.json_decode = function(str)
-        -- Remove comments and trailing commas
-        str = str:gsub("//.-\n", "\n") -- single line comments
+        str = str:gsub("//.-\n", "\n") -- single-line comments
         str = str:gsub("/%*.-%*/", "") -- block comments
         str = str:gsub(",%s*([%]%}])", "%1") -- trailing commas
-        -- Convert VS Code Go's "auto" mode to "debug" for nvim-dap-go
+        str = str:gsub('"type"%s*:%s*"go"', '"type": "delve"')
         str = str:gsub('"mode"%s*:%s*"auto"', '"mode": "debug"')
         return vim.json.decode(str)
       end
-      vscode.type_to_filetypes = {
-        go = { "go" },
-        delve = { "go" },
-      }
-      -- Auto-load launch.json when entering a buffer
-      vim.api.nvim_create_autocmd("DirChanged", {
-        callback = function()
-          local launch_json = vim.fn.getcwd() .. "/.vscode/launch.json"
-          if vim.fn.filereadable(launch_json) == 1 then
-            pcall(vscode.load_launchjs, launch_json, { go = { "go" }, delve = { "go" } })
-          end
-        end,
-      })
-      -- Load on startup too
-      local launch_json = vim.fn.getcwd() .. "/.vscode/launch.json"
-      if vim.fn.filereadable(launch_json) == 1 then
-        pcall(vscode.load_launchjs, launch_json, { go = { "go" }, delve = { "go" } })
-      end
     end,
   },
 
-  -- DAP UI
+  -- Install and configure debug adapters managed by Mason. Adapter names here
+  -- are nvim-dap names ("delve" maps to Mason's "delve" package).
   {
-    "rcarriga/nvim-dap-ui",
-    dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" },
-    config = function()
-      require("dapui").setup()
-      -- Auto-open UI when debugging starts
-      require("dap").listeners.after.event_initialized["dapui_config"] = function()
-        require("dapui").open()
-      end
-    end,
-  },
-
-  -- Go-specific DAP configuration
-  {
-    "leoluz/nvim-dap-go",
-    ft = "go",
+    "jay-babu/mason-nvim-dap.nvim",
     dependencies = {
       "mfussenegger/nvim-dap",
-      "rcarriga/nvim-dap-ui",
+      { "mason-org/mason.nvim", opts = {} },
     },
-    config = function()
-      require("dap-go").setup {
-        delve = {
-          path = "dlv",
-          initialize_timeout_sec = 20,
-        },
-      }
-
-      -- Global command: dap-go config runs once, so a buffer-local command
-      -- would disappear after switching from task.go to task_test.go.
-      vim.api.nvim_create_user_command("DapGoDebug", function()
-        require("dap-go").debug_test()
-      end, { desc = "Debug nearest Go test" })
-
-      vim.api.nvim_create_user_command("DapGoDebugLast", function()
-        require("dap-go").debug_last_test()
-      end, { desc = "Debug last Go test" })
-    end,
+    opts = {
+      ensure_installed = { "delve" },
+      automatic_installation = true,
+      handlers = {},
+    },
   },
 
-  -- DAP virtual text
+  -- Debug UI. Replaces nvim-dap-ui and opens/closes with each DAP session.
   {
-    "theHamsta/nvim-dap-virtual-text",
+    "igorlfs/nvim-dap-view",
+    version = "1.*",
     dependencies = { "mfussenegger/nvim-dap" },
-    config = function()
-      require("nvim-dap-virtual-text").setup()
-    end,
+    opts = {
+      auto_toggle = true,
+    },
   },
 
   -- Yazi file manager

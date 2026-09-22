@@ -65,7 +65,7 @@ goto = "prefix+g"
 last_pane = "cmd+escape"
 toggle_sidebar = ["prefix+b", "cmd+b"]
 
-split_vertical = ["prefix+v", "cmd+d", "cmd+shift+s"]
+split_vertical = ["cmd+d", "cmd+shift+s"]
 split_horizontal = ["prefix+minus", "cmd+s", "cmd+shift+d"]
 close_pane = ["prefix+x", "cmd+x", "cmd+w"]
 

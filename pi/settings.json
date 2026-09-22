@@ -11,9 +11,9 @@
     "npm:pi-web-access",
     "npm:pi-grill-wizard"
   ],
-  "lastChangelogVersion": "0.85.1",
-  "defaultProvider": "arcus",
-  "defaultModel": "kimi-k3",
+  "lastChangelogVersion": "0.86.1",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "high",
   "theme": "terminal-user-card",
   "outputPad": 0,

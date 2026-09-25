@@ -5,13 +5,13 @@
     "npm:pi-usage",
     "npm:@ifi/pi-plan",
     "npm:pi-session-title",
-    "npm:pi-cursor-sdk",
     "npm:pi-subagents",
     "npm:pi-caveman",
     "npm:pi-web-access",
-    "npm:pi-grill-wizard"
+    "npm:pi-grill-wizard",
+    "../../gits/pi-copy-code-block"
   ],
-  "lastChangelogVersion": "0.86.1",
+  "lastChangelogVersion": "0.87.1",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "high",

@@ -102,52 +102,29 @@ first launch, so open `nvim` once after bootstrapping.
   than Windows Terminal.
 - `pi` rewrites `~/.pi/agent/settings.json` when you change model or theme from
   inside the app; commit the resulting change here.
-- `pi/settings.json` defaults to DevRev's Arcus AI Gateway. Auth comes from the
-  `ARCUS_API_KEY` environment variable, which `zsh/zshrc` populates from Keychain
-  (`arcus-token`, e.g. installed by
-  [Vulcan](https://github.com/devrev/vulcan)). Alternatively, run `/login`, select
-  **Arcus AI Gateway**, and paste the token into pi's local auth store. Arcus models are
-  refreshed from `/v1/models`; `/arcus-status` shows auth and catalog state.
-- `pi/extensions/provider-profiles.ts` makes the provider the unit of work:
-  `/provider [name]` (or `Ctrl+R`) picks the provider group, `/scope` chooses
-  which of *that group's* models to cycle, and `Ctrl+P` cycles them without
-  ever leaving the group. `PROVIDER_GROUPS` merges `amazon-bedrock` +
-  `bedrock-mantle` into one `bedrock` group; when both expose the same model id
-  the later member wins, so mantle's working `openai.gpt-5.6-*` replaces the
-  broken Converse copies. `DEFAULT_SCOPE` starts each group with only Opus 5
-  Global + GPT-5.6 Sol/Terra enabled; everything else is listed in `/scope` but
-  off. Saved scope lives in `~/.pi/agent/provider-profiles.json` (per-machine
-  runtime state, not in this repo). Providers appear only when their auth is
-  configured. `Ctrl+L` still opens the full cross-provider picker, and built-in
-  `/scoped-models` still edits pi's own cross-provider scope — it is handled
-  inside pi before extension commands, so it cannot be overridden; use `/scope`
-  for the per-group list.
+- Pi is configured for OpenAI Codex only. `defaultModel` is `gpt-6-sol`, and
+  `enabledModels` limits startup and model cycling to `openai-codex/gpt-6-sol`
+  and `openai-codex/gpt-6-luna`.
+- `pi/extensions/provider-profiles.ts` exposes only `openai-codex`. `Ctrl+P`
+  cycles GPT-6 Sol and GPT-6 Luna; `/scope` edits that list. Scope is saved in
+  `~/.pi/agent/provider-profiles.json` (per-machine runtime state, not in this
+  repo). Use `/scope` instead of built-in `/scoped-models`, which Pi handles
+  before extension commands.
 - `pi/keybindings.json` clears the built-in bindings that would otherwise claim
   the extension's keys, so it must stay linked alongside
   `pi/extensions/provider-profiles.ts`:
   | id | change | why |
   | -- | ------ | --- |
-  | `app.model.cycleForward` / `app.model.cycleBackward` | unbound | reserved ids; while bound, pi *skips* an extension shortcut on `Ctrl+P` / `Shift+Ctrl+P` entirely |
+  | `app.model.cycleForward` | unbound | reserved id; while bound, pi *skips* the extension shortcut on `Ctrl+P` entirely |
+  | `app.model.cycleBackward` | unbound | keep reverse model cycling disabled; use the Codex-only scope |
   | `app.session.togglePath` | unbound | also held `Ctrl+P`; only toggled path display in `/resume` |
   | `app.models.toggleProvider` | unbound | also held `Ctrl+P`; belonged to built-in `/scoped-models`, superseded by `/scope` |
-  | `app.session.rename` | moved to `F2` | held `Ctrl+R`; rename-from-`/resume` has no other entry point (`/name` only renames the current session) |
+  | `app.session.rename` | moved to `F2` | keeps rename available from `/resume`; `/name` only renames the current session |
   Without the two `unbound` entries on `Ctrl+P`, pi prints an
   `[Extension issues]` shortcut-conflict warning on every start and `/reload` —
   `quietStartup` does *not* suppress those. The unbound picker actions still
   render their hint text in `/resume` and `/scoped-models`, just with an empty
   key.
-- Provider cycling is bound to **`Ctrl+R`** as well as `Shift+Ctrl+P`, because
-  kitty's default `kitty_mod+p` (= `ctrl+shift+p`) is a multi-key *prefix* for
-  its `hints`/`choose-files` kittens: the first press is swallowed by kitty's
-  pending-sequence mode, so only a double press reaches pi. To reclaim
-  `Shift+Ctrl+P` instead, unmap the prefix leaves in `kitty/kitty.conf`
-  (`map kitty_mod+p>f`, `>shift+f`, `>c`, `>d`, `>l`, `>w`, `>h`, `>n`, `>y`
-  with no action), at the cost of kitty's hint-insertion features.
-- `pi/extensions/bedrock-mantle.ts` registers the `bedrock-mantle` provider
-  (GPT-5.x / Grok, served from Bedrock's OpenAI-compatible endpoint through a
-  local SigV4 proxy). It reads AWS credentials from the environment; refresh
-  them outside pi (`aws sso login` / `aws configure export-credentials`) — pi
-  no longer manages AWS SSO itself.
 - [godbg](https://github.com/erazemkos/godbg) is a mouse-first terminal debugger
   for Go: Delve over DAP, a GoLand keymap, and Neovim embedded in its source
   panel (`nvim --embed` attached as a Neovim UI, so the code shows your

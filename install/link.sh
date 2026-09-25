@@ -42,9 +42,14 @@ link pi/settings.json "$PI_AGENT/settings.json"
 link pi/keybindings.json "$PI_AGENT/keybindings.json"
 link pi/themes/terminal-user-card.json "$PI_AGENT/themes/terminal-user-card.json"
 link pi/extensions/clean-code-blocks.ts "$PI_AGENT/extensions/clean-code-blocks.ts"
-link pi/extensions/arcus.ts "$PI_AGENT/extensions/arcus.ts"
-link pi/extensions/bedrock-mantle.ts "$PI_AGENT/extensions/bedrock-mantle.ts"
 link pi/extensions/provider-profiles.ts "$PI_AGENT/extensions/provider-profiles.ts"
+# Remove legacy provider-extension links owned by this dotfiles repo.
+for extension in arcus.ts bedrock-mantle.ts; do
+	old="$PI_AGENT/extensions/$extension"
+	if [ -L "$old" ] && [ "$(readlink "$old")" = "$DOTFILES_ROOT/pi/extensions/$extension" ]; then
+		rm "$old"
+	fi
+done
 link pi/agents/review.md "$PI_AGENT/agents/review.md"
 for prompt in review pr-comment video; do
 	link "pi/prompts/$prompt.md" "$PI_AGENT/prompts/$prompt.md"

@@ -1,41 +1,18 @@
 /**
- * Provider profiles: per-provider scope, cycling, and provider switching.
+ * OpenAI Codex model scope and cycling.
  *
- * Workflow
- * --------
- *   Ctrl+R        – cycle to the next provider group (kitty-safe)
- *   Shift+Ctrl+P  – same, but kitty swallows the first press (see below)
- *   /provider     – switch provider by name or selector
- *   /scope        – toggle which models Ctrl+P cycles for the current group
- *   Ctrl+P        – cycle through the scoped models of the current group
- *   Ctrl+L        – pi's built-in full cross-provider picker (unchanged)
+ * /scope toggles the models Ctrl+P cycles. Only openai-codex is exposed by
+ * /provider; the default scope is GPT-6 Sol and GPT-6 Luna.
  *
- * Provider groups
- * ---------------
- * PROVIDER_GROUPS merges multiple actual providers into one logical group.
- * `bedrock` combines `amazon-bedrock` (Claude via Converse) and
- * `bedrock-mantle` (GPT/Grok via the local SigV4 proxy). When two providers
- * expose the same model id, the later entry in the group array wins — so
- * bedrock-mantle's working `openai.gpt-5.6-sol` replaces amazon-bedrock's
- * broken Converse copy.
+ * Scope is persisted to ~/.pi/agent/provider-profiles.json (per-machine
+ * runtime state, not in the dotfiles repo).
  *
- * Defaults and scope
- * ------------------
- * DEFAULT_SCOPE defines which models start *enabled* in /scope when the user
- * has not saved a custom scope yet. Only opus-5 global + gpt-5.6 sol/terra
- * are on by default; the rest are in the list but off.
- *
- * Scope is persisted per group to ~/.pi/agent/provider-profiles.json
- * (per-machine runtime state, not in the dotfiles repo).
- *
- * Keybinding note
- * ---------------
- * app.model.cycleForward/cycleBackward are reserved keybindings that block
- * extension overrides. pi/keybindings.json unbinds them so ctrl+p and
- * shift+ctrl+p are available. Both files must ship together.
+ * app.model.cycleForward is reserved and blocks the extension override.
+ * pi/keybindings.json unbinds it so Ctrl+P is available; it also disables
+ * built-in reverse cycling. Both files must ship together.
  *
  * Built-in /scoped-models is handled by pi before extension commands and
- * cannot be overridden. /scope is the per-group equivalent.
+ * cannot be overridden. /scope is the provider-specific equivalent.
  */
 
 import type { Api, Model } from "@earendil-works/pi-ai/compat";
@@ -62,69 +39,17 @@ import { dirname, join } from "node:path";
 // Configuration
 // ---------------------------------------------------------------------------
 
-/**
- * Group id → actual provider ids.
- * Later entries in the array win when two providers share a model id.
- */
-const PROVIDER_GROUPS: Record<string, string[]> = {
-  bedrock: ["amazon-bedrock", "bedrock-mantle"],
-};
+const ALLOWED_PROVIDERS = ["openai-codex"];
 
-/**
- * Which model ids start ENABLED in /scope before the user saves a custom
- * selection. A group with no entry starts with all models on.
- */
+/** Default models enabled in /scope, in Ctrl+P cycle order. */
 const DEFAULT_SCOPE: Record<string, string[]> = {
-  arcus: ["anthropic.claude-opus-5", "gpt-5.6-sol", "gpt-5.6-terra"],
-  bedrock: [
-    "global.anthropic.claude-opus-5",
-    "openai.gpt-5.6-sol", // bedrock-mantle version wins via dedup (works via proxy)
-    "openai.gpt-5.6-terra", // bedrock-mantle version wins via dedup
-  ],
-  "openai-codex": ["gpt-5.6-sol", "gpt-5.6-terra"],
-  cursor: ["claude-opus-5@1m", "gpt-5.6-sol@272k", "gpt-5.6-terra@272k"],
+  "openai-codex": ["gpt-6-sol", "gpt-6-luna"],
 };
 
-/**
- * Ordered model ids shown first in /scope and Ctrl+P.
- * Any available model not listed is appended after these, sorted by name.
- */
+/** Models shown first in /scope; any other available models follow by name. */
 const DEFAULT_ORDER: Record<string, string[]> = {
-  arcus: [
-    "anthropic.claude-opus-5",
-    "gpt-5.6-sol",
-    "gpt-5.6-terra",
-    "anthropic.claude-sonnet-4-6",
-    "anthropic.claude-opus-4-8",
-  ],
-  bedrock: [
-    "global.anthropic.claude-opus-5",
-    "openai.gpt-5.6-sol",
-    "openai.gpt-5.6-terra",
-    "openai.gpt-5.6-luna",
-    "xai.grok-4.3",
-    "global.anthropic.claude-sonnet-4-6",
-    "global.anthropic.claude-opus-4-8",
-    "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-  ],
-  "openai-codex": ["gpt-5.6-sol", "gpt-5.6-terra"],
-  cursor: [
-    "claude-opus-5@1m",
-    "gpt-5.6-sol@272k",
-    "gpt-5.6-terra@272k",
-    "claude-opus-5@300k",
-    "gpt-5.6-sol@1m",
-    "gpt-5.6-terra@1m",
-  ],
+  "openai-codex": ["gpt-6-sol", "gpt-6-luna"],
 };
-
-/** Human-readable display names for groups (standalone providers use the registry name). */
-const GROUP_DISPLAY_NAMES: Record<string, string> = {
-  bedrock: "Amazon Bedrock",
-};
-
-/** Preferred order for Shift+Ctrl+P and /provider. Unlisted groups follow sorted by name. */
-const PROVIDER_ORDER = ["arcus", "bedrock", "openai-codex", "cursor"];
 
 // ---------------------------------------------------------------------------
 // State (persisted to provider-profiles.json)
@@ -169,36 +94,27 @@ function saveScopes(): void {
 loadScopes();
 
 // ---------------------------------------------------------------------------
-// Group helpers
+// Provider helpers
 // ---------------------------------------------------------------------------
 
 type Registry = ExtensionContext["modelRegistry"];
 
-/** Maps an actual provider id to its logical group id (or itself if ungrouped). */
+/** Provider id is also its profile id; only openai-codex is exposed. */
 function resolveGroup(providerId: string): string {
-  for (const [group, members] of Object.entries(PROVIDER_GROUPS)) {
-    if (members.includes(providerId)) return group;
-  }
   return providerId;
 }
 
-/** Returns the actual provider ids that belong to a group. */
 function groupMembers(groupId: string): string[] {
-  return PROVIDER_GROUPS[groupId] ?? [groupId];
+  return [groupId];
 }
 
 function groupDisplayName(registry: Registry, groupId: string): string {
-  return (
-    GROUP_DISPLAY_NAMES[groupId] ??
-    registry.getProviderDisplayName(groupMembers(groupId)[0] ?? groupId)
-  );
+  return registry.getProviderDisplayName(groupId);
 }
 
-/**
- * All available models for a group, deduplicated by model id (later member
- * in PROVIDER_GROUPS wins), then ordered by DEFAULT_ORDER + alpha remainder.
- */
+/** Available Codex models, ordered by DEFAULT_ORDER + alphabetic remainder. */
 function orderedModels(registry: Registry, groupId: string): Model<Api>[] {
+  if (!ALLOWED_PROVIDERS.includes(groupId)) return [];
   const members = groupMembers(groupId);
   const byId = new Map<string, Model<Api>>();
   for (const provider of members) {
@@ -251,20 +167,12 @@ function cycleModels(registry: Registry, groupId: string): Model<Api>[] {
   return effectiveScope(groupId, orderedModels(registry, groupId));
 }
 
-/** All available groups in preferred order. */
+/** Allowed providers present in the model registry. */
 function availableGroups(registry: Registry): string[] {
-  const seen = new Set(
+  const available = new Set(
     registry.getAvailable().map((m) => resolveGroup(m.provider)),
   );
-  return [...seen].sort((a, b) => {
-    const ia = PROVIDER_ORDER.indexOf(a);
-    const ib = PROVIDER_ORDER.indexOf(b);
-    if (ia !== -1 || ib !== -1)
-      return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib);
-    return groupDisplayName(registry, a).localeCompare(
-      groupDisplayName(registry, b),
-    );
-  });
+  return ALLOWED_PROVIDERS.filter((id) => available.has(id));
 }
 
 function groupLabel(registry: Registry, groupId: string): string {
@@ -298,6 +206,10 @@ export default function providerProfiles(pi: ExtensionAPI) {
       return;
     }
     const groupId = resolveGroup(current.provider);
+    if (!ALLOWED_PROVIDERS.includes(groupId)) {
+      ctx.ui.notify("Only the OpenAI Codex provider is enabled.", "warning");
+      return;
+    }
     const list = cycleModels(ctx.modelRegistry, groupId);
     const groupName = groupDisplayName(ctx.modelRegistry, groupId);
 
@@ -320,26 +232,6 @@ export default function providerProfiles(pi: ExtensionAPI) {
       `${groupName}: ${next.name} (${list.indexOf(next) + 1}/${list.length})`,
       "info",
     );
-  }
-
-  /** Shift+Ctrl+P: next provider group, landing on its first scoped model. */
-  async function cycleGroup(ctx: ExtensionContext) {
-    const groups = availableGroups(ctx.modelRegistry);
-    if (groups.length === 0) {
-      ctx.ui.notify("No providers with configured auth.", "warning");
-      return;
-    }
-    if (groups.length === 1) {
-      ctx.ui.notify(
-        `Only ${groupDisplayName(ctx.modelRegistry, groups[0])} is configured.`,
-        "info",
-      );
-      return;
-    }
-    const currentGroup = ctx.model ? resolveGroup(ctx.model.provider) : "";
-    const idx = groups.indexOf(currentGroup);
-    const next = groups[(idx + 1) % groups.length];
-    await applyGroup(ctx, next, false);
   }
 
   async function applyGroup(
@@ -375,23 +267,8 @@ export default function providerProfiles(pi: ExtensionAPI) {
     description: "Cycle model within the current provider group",
     handler: (ctx) => cycleModel(ctx),
   });
-  pi.registerShortcut("shift+ctrl+p", {
-    description: "Cycle to next provider group",
-    handler: (ctx) => cycleGroup(ctx),
-  });
-  // kitty reserves kitty_mod+p (= ctrl+shift+p by default) as a multi-key
-  // PREFIX for its hints/choose-files kittens, so the first press is swallowed
-  // by kitty's pending-sequence mode and only a second press reaches pi.
-  // ctrl+r is conflict-free: kitty leaves plain ctrl+r alone, and pi only binds
-  // it inside the session picker (app.session.rename), never in the editor.
-  pi.registerShortcut("ctrl+r", {
-    description: "Cycle to next provider group (kitty-safe alias)",
-    handler: (ctx) => cycleGroup(ctx),
-  });
-
   pi.registerCommand("provider", {
-    description:
-      "Switch provider group (Shift+Ctrl+P cycles, Ctrl+P then cycles its models)",
+    description: "Select the configured OpenAI Codex provider",
     getArgumentCompletions: (prefix: string): AutocompleteItem[] | null => {
       if (!lastRegistry) return null;
       const q = prefix.trim().toLowerCase();
@@ -475,8 +352,11 @@ export default function providerProfiles(pi: ExtensionAPI) {
       }
 
       const groupId = resolveGroup(current.provider);
+      if (!ALLOWED_PROVIDERS.includes(groupId)) {
+        ctx.ui.notify("Only the OpenAI Codex provider is enabled.", "warning");
+        return;
+      }
       const groupName = groupDisplayName(ctx.modelRegistry, groupId);
-      const members = groupMembers(groupId);
       const ordered = orderedModels(ctx.modelRegistry, groupId);
 
       if (ordered.length === 0) {
@@ -490,28 +370,15 @@ export default function providerProfiles(pi: ExtensionAPI) {
       );
 
       await ctx.ui.custom<void>((_tui, theme, _kb, done) => {
-        // Show provider badge when the group spans multiple providers
-        const showBadge = members.length > 1;
-        const shortBadge = (providerId: string) => {
-          if (providerId === "bedrock-mantle") return " [mantle]";
-          if (providerId === "amazon-bedrock") return " [converse]";
-          return ` [${providerId}]`;
-        };
-
         const items: SettingItem[] = ordered.map((model) => ({
           id: model.id,
-          label:
-            `${model.id === current.id ? "● " : "  "}${model.name || model.id}` +
-            (showBadge ? theme.fg("dim", shortBadge(model.provider)) : ""),
+          label: `${model.id === current.id ? "● " : "  "}${model.name || model.id}`,
           description: model.id,
           currentValue: initiallyEnabled.has(model.id) ? "on" : "off",
           values: ["on", "off"],
         }));
 
-        const subtitle =
-          members.length > 1
-            ? theme.fg("dim", `${members.join(" + ")}`)
-            : theme.fg("dim", members[0] ?? groupId);
+        const subtitle = theme.fg("dim", groupId);
 
         const container = new Container();
         container.addChild(

@@ -960,11 +960,23 @@ require("lazy").setup({
         templ = {},
         ts_ls = {}, -- JavaScript/TypeScript
         pyright = {
+          settings = {
+            python = {
+              analysis = { typeCheckingMode = "strict" },
+            },
+          },
           on_init = function(client)
             client.settings = vim.tbl_deep_extend("force", client.settings or {}, {
               python = { pythonPath = project_python(client.config.root_dir) },
             })
             client:notify("workspace/didChangeConfiguration", { settings = nil })
+          end,
+        },
+        -- Ruff's built-in language server, used for linting (formatting goes through conform)
+        ruff = {
+          on_attach = function(client)
+            -- Leave hover to pyright
+            client.server_capabilities.hoverProvider = false
           end,
         },
 
@@ -995,7 +1007,6 @@ require("lazy").setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         "stylua", -- Used to format Lua code
-        "ruff", -- Used to format Python code
         "prettier", -- Used to format CSS/HTML
         "goimports", -- Used to format Go code
       })

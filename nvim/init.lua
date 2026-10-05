@@ -960,6 +960,18 @@ require("lazy").setup({
         templ = {},
         ts_ls = {}, -- JavaScript/TypeScript
         pyright = {
+          -- uv.lock first: in a uv workspace the venv and pyright config live at the
+          -- workspace root, not next to the nearest member pyproject.toml
+          root_markers = {
+            "uv.lock",
+            "pyrightconfig.json",
+            "pyproject.toml",
+            "setup.py",
+            "setup.cfg",
+            "requirements.txt",
+            "Pipfile",
+            ".git",
+          },
           settings = {
             python = {
               analysis = { typeCheckingMode = "strict" },
@@ -1154,11 +1166,52 @@ require("lazy").setup({
     "Mofiqul/vscode.nvim",
     priority = 1000, -- Make sure to load this before all the other start plugins.
     config = function()
+      local c = require("vscode.colors").get_colors()
+      local front = "#CCCCCC" -- VS Code Dark Modern editor foreground (vscode.nvim ships Dark+'s #D4D4D4)
       require("vscode").setup {
         transparent = false,
         italic_comments = true,
+        color_overrides = { vscFront = front },
+        group_overrides = {
+          -- VS Code's bracket pair colorization (Dark Modern), applied by rainbow-delimiters
+          RainbowDelimiterYellow = { fg = "#FFD700" },
+          RainbowDelimiterViolet = { fg = "#DA70D6" },
+          RainbowDelimiterBlue = { fg = "#179FFF" },
+
+          -- Python as VS Code colors it from TextMate scopes (no Pylance semantic tokens).
+          -- Captures are adjusted in after/queries/python/highlights.scm.
+          -- Plain names stay uncolored
+          ["@variable.python"] = { fg = front },
+          ["@variable.member.python"] = { fg = front },
+          ["@module.python"] = { fg = front },
+          ["@constant.python"] = { fg = front },
+          ["@type.python"] = { fg = front },
+          -- Empty groups are transparent: calls keep the callee's color (plain name,
+          -- builtin type like `ValueError(`, or builtin function like `print(`)
+          ["@constructor.python"] = {},
+          ["@function.call.python"] = {},
+          ["@function.method.call.python"] = {},
+          ["@type.builtin.python"] = { fg = c.vscBlueGreen },
+          ["@type.definition.python"] = { fg = c.vscBlueGreen },
+          ["@keyword.python"] = { fg = c.vscPink },
+          ["@keyword.coroutine.python"] = { fg = c.vscPink },
+          ["@function.macro.python"] = { fg = c.vscBlue }, -- f-string `!r`
+          ["@string.prefix.python"] = { fg = c.vscBlue },
+          ["@string.escape.python"] = { fg = c.vscYellowOrange },
+          ["@operator.python"] = { fg = "#D4D4D4" }, -- keyword.operator keeps Dark+'s color
+        },
       }
       vim.cmd.colorscheme "vscode"
+    end,
+  },
+
+  { -- Color brackets by nesting depth, like VS Code's bracket pair colorization
+    "HiPhish/rainbow-delimiters.nvim",
+    commit = "3a0fc08dd39e8bf034a4cfef3f2845bd5f565a2e",
+    init = function()
+      vim.g.rainbow_delimiters = {
+        highlight = { "RainbowDelimiterYellow", "RainbowDelimiterViolet", "RainbowDelimiterBlue" },
+      }
     end,
   },
 
@@ -1167,7 +1220,8 @@ require("lazy").setup({
     "folke/todo-comments.nvim",
     event = "VimEnter",
     dependencies = { "nvim-lua/plenary.nvim" },
-    opts = { signs = false },
+    -- Color just the keyword, like VS Code, instead of a badge plus a recolored rest of line
+    opts = { signs = false, highlight = { keyword = "fg", after = "" } },
   },
 
   { -- Collection of various small independent plugins/modules
@@ -1226,6 +1280,7 @@ require("lazy").setup({
         "luadoc",
         "markdown",
         "markdown_inline",
+        "python",
         "query",
         "vim",
         "vimdoc",
@@ -1243,7 +1298,11 @@ require("lazy").setup({
         }
       else
         -- New nvim-treesitter (main branch): configs module removed.
-        -- Parsers must be installed via :TSInstall. Enable highlighting via built-in API.
+        -- install() skips parsers that are already there; building needs the tree-sitter CLI.
+        if vim.fn.executable "tree-sitter" == 1 then
+          require("nvim-treesitter").install(ensure_installed)
+        end
+        -- Enable highlighting via built-in API.
         vim.api.nvim_create_autocmd("FileType", {
           callback = function()
             pcall(vim.treesitter.start)

@@ -111,7 +111,6 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 #eval "$(zoxide init zsh --cmd cd)"
-export CLAUDE_CODE_USE_BEDROCK=1
 alias oc="opencode"
 alias lg="lazygit"
 
@@ -140,3 +139,24 @@ if [[ $- == *i* ]] && command -v zoxide >/dev/null 2>&1; then
 	eval "$(zoxide init --cmd cd zsh)"
 fi
 [ -d "/Applications/ServiceNow CLI/bin" ] && export PATH="$PATH:/Applications/ServiceNow CLI/bin"
+# Elevate AWS access to full admin for this session
+aws-admin() {
+  local creds
+  creds=$(security find-generic-password -a "$USER" -s "aws-admin-keys" -w) || return 1
+  export AWS_ACCESS_KEY_ID=$(echo "$creds" | jq -r '.access_key_id')
+  export AWS_SECRET_ACCESS_KEY=$(echo "$creds" | jq -r '.secret_access_key')
+  echo "AWS elevated to $(aws sts get-caller-identity --output json | jq -r '.Arn')"
+}
+
+# Drop back to read-only AWS access
+aws-deescalate() {
+  unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+  echo "AWS dropped to $(aws sts get-caller-identity --output json | jq -r '.Arn')"
+}
+
+
+export CLAUDE_CODE_USE_BEDROCK=0
+
+# Gambit shell integration
+# Auto-managed by /gambit:setup
+source "$HOME/.gambit/shell-integration.sh"
